@@ -33,7 +33,7 @@
     </v-flex>
   </v-layout>
 
-  <v-layout>
+  <v-layout rows>
     <v-flex>
       <v-text-field
             v-model="newMessage"
@@ -42,28 +42,39 @@
             single-line
             outline></v-text-field>
     </v-flex>
-    <v-btn @click="sendMassage">Отправить</v-btn>
+    <uploder/>
+    <v-btn @click="sendMassage" color="primary">Отправить</v-btn>
   </v-layout>
 
   </v-layout>
 </template>
 
 <script>
-import io from 'socket.io-client'
 import MessagesPanel from '@/components/Messages'
+import Uploder from '@/components/Uploder'
 
 export default {
   components: {
-    MessagesPanel
+    MessagesPanel,
+    Uploder
   },
   mounted () {
     this.$root.$emit('setMm', this.$refs.boxChatMess.clientHeight)
 
-    this.socket.on('newMessage', (data) => {
-      this.$root.$emit('newMessage', {text: data.message, name: data.name, type: 0})
+    this.$root.$on('sendMessage', (data) => {
+      this.$socket.emit('newMessage', {
+        message: data.message,
+        name: this.curentUser.name,
+        cat: data.cat
+      })
+      this.$root.$emit('newMessage', {text: data.message, name: this.curentUser.name, type: 1, cat: data.cat})
     })
 
-    this.socket.on('upUsers', (data) => {
+    this.$socket.on('newMessage', (data) => {
+      this.$root.$emit('newMessage', {text: data.message, name: data.name, type: 0, cat: (data.cat | 0)})
+    })
+
+    this.$socket.on('upUsers', (data) => {
       this.users = data
     })
   },
@@ -72,8 +83,7 @@ export default {
     return {
       curentUser: {name: Math.random()},
       users: {},
-      newMessage: null,
-      socket: io('192.168.0.103:3000')
+      newMessage: null
     }
   },
   methods: {
@@ -81,7 +91,7 @@ export default {
       if (!this.newMessage) return
       this.$root.$emit('newMessage', {text: this.newMessage, name: this.curentUser.name, type: 1})
 
-      this.socket.emit('newMessage', {
+      this.$socket.emit('newMessage', {
         message: this.newMessage,
         name: this.curentUser.name
       })
@@ -89,7 +99,7 @@ export default {
       this.newMessage = null
     },
     setName () {
-      this.socket.emit('setName', this.curentUser.name)
+      this.$socket.emit('setName', this.curentUser.name)
     }
   }
 }

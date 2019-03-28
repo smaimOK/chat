@@ -1,11 +1,21 @@
 const express = require('express')
-const app = express()
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
+const app = express() 
+const bodyParser = require('body-parser')
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
+const fileUpload = require('express-fileupload')
+const cors = require('cors');
 
-var users = {}
+
+app.use(bodyParser.json())
+app.use(cors());
 
 app.use(express.static(__dirname + '/public'));
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 },
+}));
+
+var users = {}
 
 app.get('/chat', function (req, res) {
   res.sendFile(__dirname + '/index.html')
@@ -35,7 +45,25 @@ io.on('connection', function(socket){
 
 });
 
+app.post('/upload', async function(req, res) {
+  if (Object.keys(req.files).length == 0) {
+    return res.status(400).send('No files were uploaded.');
+  }
 
-http.listen(3000,'192.168.0.103', () => {
+  let sampleFile = req.files.file;
+
+  let fullName = __dirname + '/public/static/files/' + sampleFile.name
+  let visName = 'http://192.168.0.104:3000/'+'/static/files/' + sampleFile.name
+
+  sampleFile.mv(fullName, function(err) {
+    if (err)
+      return res.status(500).send(err);
+
+    res.send({url: visName});
+  })
+})
+
+
+http.listen(3000,'192.168.0.104', () => {
   console.log('server start!')
 })

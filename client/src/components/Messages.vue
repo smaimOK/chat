@@ -13,10 +13,15 @@
               <v-list-tile-title v-html="(item.type === 0 ? item.name : '')" v-bind:class="(item.type === 0 ? 'text-xs-left' : 'text-xs-right')"></v-list-tile-title>
               <v-list-tile-sub-title>
                 <p>
-                  <span class='text--primary'>
+                  <span class='text--primary' v-if="(!item.cat || item.cat == 0)">
                     {{item.text}}
                   </span>
                 </p>
+                <v-flex v-if="item.cat || item.cat == 1">
+                  <v-btn :href="item.text" target="_blank">
+                    <v-icon>link</v-icon> Файл
+                  </v-btn>
+                </v-flex>
               </v-list-tile-sub-title>
             </v-list-tile-content>
             <v-list-tile-avatar v-if="item.type === 1">

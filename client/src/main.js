@@ -7,6 +7,11 @@ import router from './router'
 import 'vuetify/dist/vuetify.min.css'
 import Vuetify from 'vuetify'
 
+import VueSocketio from 'vue-socket.io-extended'
+import io from 'socket.io-client'
+
+Vue.use(VueSocketio, io('192.168.0.104:3000'))
+
 Vue.config.productionTip = false
 
 Vue.use(Vuetify)
